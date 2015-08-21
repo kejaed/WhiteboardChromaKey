@@ -54,34 +54,34 @@ while (1):
     # see if we got a good frame
     if ret == True:
 
+        # we have a template of the top right of the board, find the best match in the frame
         method = cv2.TM_CCOEFF_NORMED
         res = cv2.matchTemplate(frame,template,method)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-
-        #in our case, if max_val > 70 we have the right scene
+        #in our case, if max_val > .70 we have the right scene and really did find the whiteboard
         if max_val > .70:
-            Tbottom_right = (max_loc[0] + Tw, max_loc[1] + Th)
 
-            # 56 and 36 are from edge of template to corner of whiteboard
+            # 56 and 36 are from edge of template to corner of whiteboard in that template
             TR = (max_loc[0] + 56, max_loc[1] + 32)
 
+            # fin the other corners by hand-tuned offsets
             TL = tuple(TR - TR_TL)
             BL = tuple(TR - TR_BL)
             BR = tuple(TR - TR_BR)
             
             #cv2.rectangle(frame,max_loc, Tbottom_right, 255, 2)
 
-            
-            cv2.circle(frame , TL, 2,(0,0,255),-1)
-            cv2.circle(frame , TR, 2,(0,0,255),-1)
-            cv2.circle(frame , BL, 2,(0,0,255),-1)
-            cv2.circle(frame , BR, 2,(0,0,255),-1)
+            if 0:
+                cv2.circle(frame , TL, 2,(0,0,255),-1)
+                cv2.circle(frame , TR, 2,(0,0,255),-1)
+                cv2.circle(frame , BL, 2,(0,0,255),-1)
+                cv2.circle(frame , BR, 2,(0,0,255),-1)
 
-            cv2.line(frame,TL,TR,(0,0,255),2)
-            cv2.line(frame,TR,BR,(0,0,255),2)
-            cv2.line(frame,BR,BL,(0,0,255),2)
-            cv2.line(frame,BL,TL,(0,0,255),2)
+                cv2.line(frame,TL,TR,(0,0,255),2)
+                cv2.line(frame,TR,BR,(0,0,255),2)
+                cv2.line(frame,BR,BL,(0,0,255),2)
+                cv2.line(frame,BL,TL,(0,0,255),2)
 
             # using http://www.pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/
 
@@ -91,25 +91,30 @@ while (1):
             rect[2] = BR
             rect[3] = BL
 
-            widthA = np.sqrt(((BR[0] - BL[0]) ** 2) + ((BR[1] - BL[1]) ** 2))
-            widthB = np.sqrt(((TR[0] - TL[0]) ** 2) + ((TR[1] - TL[1]) ** 2))
-            maxWidth = max(int(widthA), int(widthB))
+            # how the URL guessed at size of the board
+            #widthA = np.sqrt(((BR[0] - BL[0]) ** 2) + ((BR[1] - BL[1]) ** 2))
+            #widthB = np.sqrt(((TR[0] - TL[0]) ** 2) + ((TR[1] - TL[1]) ** 2))
+            #maxWidth = max(int(widthA), int(widthB))
 
-            heightA = np.sqrt(((TR[0] - BR[0]) ** 2) + ((TR[1] - BR[1]) ** 2))
-            heightB = np.sqrt(((TL[0] - BL[0]) ** 2) + ((TL[1] - BL[1]) ** 2))
-            maxHeight = max(int(heightA), int(heightB))
+            #heightA = np.sqrt(((TR[0] - BR[0]) ** 2) + ((TR[1] - BR[1]) ** 2))
+            #heightB = np.sqrt(((TL[0] - BL[0]) ** 2) + ((TL[1] - BL[1]) ** 2))
+            #maxHeight = max(int(heightA), int(heightB))
 
+            # let's try 16x9            
+            wbWidth  = 800
+            wbHeight = 450
+            
             dst = np.array([
 		[0, 0],
-		[maxWidth - 1, 0],
-		[maxWidth - 1, maxHeight - 1],
-		[0, maxHeight - 1]], dtype = "float32")
+		[wbWidth - 1, 0],
+		[wbWidth - 1, wbHeight - 1],
+		[0, wbHeight - 1]], dtype = "float32")
 
             M = cv2.getPerspectiveTransform(rect, dst)
             Minv = cv2.getPerspectiveTransform(dst, rect)
-            warped = cv2.warpPerspective(frame, M, (maxWidth, maxHeight))
+            warped = cv2.warpPerspective(frame, M, (wbWidth, wbHeight))
 
-            cv2.rectangle(warped, (maxWidth/3,maxHeight/3), (maxWidth*2/3,maxHeight/2), 255, -1)
+            cv2.rectangle(warped, (wbWidth/3,wbHeight/3), (wbWidth*2/3,wbHeight/2), 255, -1)
             cv2.imshow('warped',warped)
 
             unWarped = cv2.warpPerspective(warped, Minv, (imsize[1], imsize[0]))
@@ -124,7 +129,7 @@ while (1):
         
         
         
-        cv2.imshow('img2',frame)
+        cv2.imshow('Original',frame)
         key = cv2.waitKey(100)
         if key  == 27:
             print "exiting!"
