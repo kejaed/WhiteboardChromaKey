@@ -103,6 +103,7 @@ while (1):
 
             # set the height in pixels of our virtual whiteboard
             # let's try 16x9            
+            # TODO determine the right virtual whiteboard size
             wbWidth  = 800
             wbHeight = 450
             
@@ -121,16 +122,28 @@ while (1):
             Minv = cv2.getPerspectiveTransform(dst, rect)
 
             # create our virtual whiteboard
-            warped = cv2.warpPerspective(frame, M, (wbWidth, wbHeight))
+            virtualWhiteboard = cv2.warpPerspective(frame, M, (wbWidth, wbHeight))
 
             # draw a blue rectangle on virtual whiteboard to test
-            cv2.rectangle(warped, (wbWidth/3,wbHeight/3), (wbWidth*2/3,wbHeight/2), 255, -1)
+            # cv2.rectangle(virtualWhiteboard, (wbWidth/3,wbHeight/3), (wbWidth*2/3,wbHeight/2), 255, -1)
             
-            cv2.imshow('warped',warped)
+            cv2.imshow('virtualWhiteboard',virtualWhiteboard)
+
+            # create forground / background masks
+            # the background is the whiteboard we are going to replace
+
+            # let's just try a threshold first, then we need to take care of the parts that are
+            # part of Jordan's shirt
+            img2gray = cv2.cvtColor(virtualWhiteboard,cv2.COLOR_BGR2GRAY)
+            ret, mask = cv2.threshold(img2gray, 225, 255, cv2.THRESH_BINARY)
+            mask_inv = cv2.bitwise_not(mask)
+            
+            cv2.imshow('mask',mask)
+
 
 
             # go from virtual whiteboard to our frame
-            unWarped = cv2.warpPerspective(warped, Minv, (imsize[1], imsize[0]))
+            unWarped = cv2.warpPerspective(virtualWhiteboard, Minv, (imsize[1], imsize[0]))
             
             cv2.imshow('unWarped',unWarped)
 
