@@ -6,7 +6,7 @@ import cv2
 startFrame = 5730
 
 # number of frames to skip each time
-skipFrames = 100
+skipFrames = 1
 
 # show the movie and plot metrics or not (much faster when not)
 showGUI = 0 ;
@@ -127,7 +127,7 @@ while (1):
             # draw a blue rectangle on virtual whiteboard to test
             # cv2.rectangle(virtualWhiteboard, (wbWidth/3,wbHeight/3), (wbWidth*2/3,wbHeight/2), 255, -1)
             
-            cv2.imshow('virtualWhiteboard',virtualWhiteboard)
+            #cv2.imshow('virtualWhiteboard',virtualWhiteboard)
 
             # create forground / background masks
             # the background is the whiteboard we are going to replace
@@ -135,17 +135,34 @@ while (1):
             # let's just try a threshold first, then we need to take care of the parts that are
             # part of Jordan's shirt
             img2gray = cv2.cvtColor(virtualWhiteboard,cv2.COLOR_BGR2GRAY)
-            ret, mask = cv2.threshold(img2gray, 225, 255, cv2.THRESH_BINARY)
+            ret, mask = cv2.threshold(img2gray, 200, 255, cv2.THRESH_BINARY)
             mask_inv = cv2.bitwise_not(mask)
-            
             cv2.imshow('mask',mask)
+            
+
+            contours, hierarchy = cv2.findContours(mask_inv,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+            areas = [cv2.contourArea(c) for c in contours]
+            max_index = np.argmax(areas)
+            cnt=contours[max_index]
+            
+            # as fun as the convex hull is, it's not what we want here.
+            hull = cv2.convexHull(cnt)
+            cv2.drawContours(virtualWhiteboard, [hull], -1, (0,255,0), 3)
+
+            cv2.drawContours(virtualWhiteboard, [cnt], -1, (0,255,255), 3)
+
+
+
+            cv2.imshow('virtualWhiteboard',virtualWhiteboard)
+            
+
 
 
 
             # go from virtual whiteboard to our frame
             unWarped = cv2.warpPerspective(virtualWhiteboard, Minv, (imsize[1], imsize[0]))
             
-            cv2.imshow('unWarped',unWarped)
+            #cv2.imshow('unWarped',unWarped)
 
             
             
@@ -156,7 +173,7 @@ while (1):
         
         
         
-        cv2.imshow('Original',frame)
+       # cv2.imshow('Original',frame)
         key = cv2.waitKey(100)
         if key  == 27: #escape
             print "exiting!"
