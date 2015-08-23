@@ -101,6 +101,7 @@ while (1):
             #heightB = np.sqrt(((TL[0] - BL[0]) ** 2) + ((TL[1] - BL[1]) ** 2))
             #maxHeight = max(int(heightA), int(heightB))
 
+            # set the height in pixels of our virtual whiteboard
             # let's try 16x9            
             wbWidth  = 800
             wbHeight = 450
@@ -111,14 +112,26 @@ while (1):
 		[wbWidth - 1, wbHeight - 1],
 		[0, wbHeight - 1]], dtype = "float32")
 
+            # create our transformation matrices
+            
+            # from frame to virtual whitebaord
             M = cv2.getPerspectiveTransform(rect, dst)
+
+            # from virtual whitebaord to frame
             Minv = cv2.getPerspectiveTransform(dst, rect)
+
+            # create our virtual whiteboard
             warped = cv2.warpPerspective(frame, M, (wbWidth, wbHeight))
 
+            # draw a blue rectangle on virtual whiteboard to test
             cv2.rectangle(warped, (wbWidth/3,wbHeight/3), (wbWidth*2/3,wbHeight/2), 255, -1)
+            
             cv2.imshow('warped',warped)
 
+
+            # go from virtual whiteboard to our frame
             unWarped = cv2.warpPerspective(warped, Minv, (imsize[1], imsize[0]))
+            
             cv2.imshow('unWarped',unWarped)
 
             
@@ -132,7 +145,7 @@ while (1):
         
         cv2.imshow('Original',frame)
         key = cv2.waitKey(100)
-        if key  == 27:
+        if key  == 27: #escape
             print "exiting!"
             break
     else:
