@@ -135,7 +135,9 @@ while (1):
             # let's just try a threshold first, then we need to take care of the parts that are
             # part of Jordan's shirt
             img2gray = cv2.cvtColor(virtualWhiteboard,cv2.COLOR_BGR2GRAY)
-            ret, mask = cv2.threshold(img2gray, 200, 255, cv2.THRESH_BINARY)
+            ret, mask = cv2.threshold(img2gray, 230, 255, cv2.THRESH_BINARY)
+            #gray = cv2.GaussianBlur(img2gray,(5,5),0)
+            #ret, mask = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
             mask_inv = cv2.bitwise_not(mask)
             cv2.imshow('mask',mask)
             
@@ -146,8 +148,8 @@ while (1):
             cnt=contours[max_index]
             
             # as fun as the convex hull is, it's not what we want here.
-            hull = cv2.convexHull(cnt)
-            cv2.drawContours(virtualWhiteboard, [hull], -1, (0,255,0), 3)
+            #hull = cv2.convexHull(cnt)
+            #cv2.drawContours(virtualWhiteboard, [hull], -1, (0,255,0), 3)
 
             cv2.drawContours(virtualWhiteboard, [cnt], -1, (0,255,255), 3)
 
