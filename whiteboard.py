@@ -41,6 +41,7 @@ print TR_BR
 # ever really blocked by jordan
 
 # so let's take that as a template and just match to that
+# TODO need to upload the right one to github
 template = cv2.imread('top_right.png')
 Th,Tw,d = template.shape
 #print h,w,d
