@@ -46,6 +46,8 @@ template = cv2.imread('top_right.png')
 Th,Tw,d = template.shape
 #print h,w,d
 
+nature = cv2.imread('nature.jpg')
+
 while (1):
     
     ret,frame = cap.read()
@@ -135,7 +137,10 @@ while (1):
             # let's just try a threshold first, then we need to take care of the parts that are
             # part of Jordan's shirt
             img2gray = cv2.cvtColor(virtualWhiteboard,cv2.COLOR_BGR2GRAY)
-            ret, mask = cv2.threshold(img2gray, 230, 255, cv2.THRESH_BINARY)
+
+            THRESHOLD = 220 ; 
+
+            ret, mask = cv2.threshold(img2gray, THRESHOLD, 255, cv2.THRESH_BINARY)
             #gray = cv2.GaussianBlur(img2gray,(5,5),0)
             #ret, mask = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
             mask_inv = cv2.bitwise_not(mask)
@@ -151,11 +156,22 @@ while (1):
             #hull = cv2.convexHull(cnt)
             #cv2.drawContours(virtualWhiteboard, [hull], -1, (0,255,0), 3)
 
-            cv2.drawContours(virtualWhiteboard, [cnt], -1, (0,255,255), 3)
+            #cv2.drawContours(virtualWhiteboard, [cnt], -1, (0,255,255), -1)
 
+    
+            jordanMask = np.zeros(img2gray.shape,np.uint8)
+            cv2.drawContours(jordanMask,[cnt],0,255,-1)
 
+            whiteboardMask = cv2.bitwise_not(jordanMask)
 
-            cv2.imshow('virtualWhiteboard',virtualWhiteboard)
+            natureMasked = cv2.bitwise_and(nature,nature,mask = whiteboardMask)
+            jordanMasked = cv2.bitwise_and(virtualWhiteboard,virtualWhiteboard,mask = jordanMask)
+
+            virtualWhiteboard = cv2.add(natureMasked,jordanMasked)
+
+            #cv2.imshow('nature',natureMasked)
+            #cv2.imshow('jordanMasked',jordanMasked)
+            #cv2.imshow('virtualWhiteboard',virtualWhiteboard)
             
 
 
@@ -164,7 +180,7 @@ while (1):
             # go from virtual whiteboard to our frame
             unWarped = cv2.warpPerspective(virtualWhiteboard, Minv, (imsize[1], imsize[0]))
             
-            #cv2.imshow('unWarped',unWarped)
+            cv2.imshow('unWarped',unWarped)
 
             
             
