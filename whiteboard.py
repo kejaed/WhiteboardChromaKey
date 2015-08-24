@@ -138,6 +138,9 @@ while (1):
             # part of Jordan's shirt
             img2gray = cv2.cvtColor(virtualWhiteboard,cv2.COLOR_BGR2GRAY)
 
+            edges = cv2.Canny(img2gray,100,200)
+            cv2.imshow('edges',edges)
+
             THRESHOLD = 220 ; 
 
             ret, mask = cv2.threshold(img2gray, THRESHOLD, 255, cv2.THRESH_BINARY)
