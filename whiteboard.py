@@ -186,20 +186,21 @@ while (1):
     
             # go from virtual whiteboard to our frame
             unWarped = cv2.warpPerspective(virtualWhiteboard, Minv, (imsize[1], imsize[0]),flags=cv2.INTER_NEAREST)
+
             unWarpedMask = cv2.warpPerspective(allWhite, Minv, (imsize[1], imsize[0]),flags=cv2.INTER_NEAREST)
 
             # before we unwarp, make the mask a little smaller than our actual size
             # to remove any jaggies
-            # need to also, or really do this earlier on in the process
-            kernel = np.ones((20,20),np.uint8)
+            kernel = np.ones((5,5),np.uint8)
             unWarpedMask2 = cv2.erode(unWarpedMask,kernel,iterations = 1)
             
             unWarpedMaskInv = cv2.bitwise_not(unWarpedMask2)
-
-
             frameMask = cv2.bitwise_and(frame,frame,mask = unWarpedMaskInv)
 
-            frameNew = cv2.add(frameMask,unWarped)
+            # update the mask on unWarped
+            unWarped2 = cv2.bitwise_and(unWarped,unWarped,mask = unWarpedMask2)
+            frameNew = cv2.add(frameMask,unWarped2)
+            
             cv2.imshow('unWarped',unWarped)
             cv2.imshow('frameNew',frameNew)
 
