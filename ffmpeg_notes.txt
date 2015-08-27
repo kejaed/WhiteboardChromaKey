@@ -1,0 +1,9 @@
+dump audio
+ffmpeg -i sd2.mp4 -vn -acodec copy audio.m2ts
+
+add audio
+http://stackoverflow.com/questions/11779490/ffmpeg-how-to-add-new-audio-not-mixing-in-video
+ffmpeg -i out3.avi -i audio.m2ts -codec copy -shortest sd2_final.avi
+
+fix frame rate
+ffmpeg -r "60" -i "input.avi" -vcodec "copy" "output.avi"
