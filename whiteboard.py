@@ -1,21 +1,28 @@
 import numpy as np
 import cv2
+import sys
 
 # frame to start looking at 
 #startFrame = 0
-startFrame = 6000
-
+startFrame = 0
+stopFrame  = 3000
 # number of frames to skip each time
-skipFrames = 1
+#skipFrames = 1
 
 # show the movie and plot metrics or not (much faster when not)
 showGUI = 0 ;
 
-cap = cv2.VideoCapture('sd.mp4')
+cap = cv2.VideoCapture('sd2.mp4')
+
+#print cap.isOpened()
 
 cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, startFrame); 
 
 numFrames = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT);
+frameRate = cap.get(cv2.cv.CV_CAP_PROP_FPS );
+codec = cap.get(cv2.cv.CV_CAP_PROP_FOURCC );
+
+print int(frameRate)
 
 
 ret,frame = cap.read()
@@ -31,10 +38,18 @@ TR_TL = np.subtract(TR , TL)
 TR_BR = np.subtract(TR , BR)
 
 imsize =  frame.shape
-print imsize
-print TR_BL 
-print TR_TL 
-print TR_BR 
+
+
+out = cv2.VideoWriter('out3.avi',cv2.cv.CV_FOURCC('M','P','4','V') ,24,(imsize[1], imsize[0]))
+
+print out.isOpened()
+if not out.isOpened():
+    sys.exit(0)
+
+#print imsize
+#print TR_BL 
+#print TR_TL 
+#print TR_BR 
 
 # some notes
 # we can use the top right edge to see if the screen has moved, that isn't
@@ -46,13 +61,14 @@ template = cv2.imread('top_right.png')
 Th,Tw,d = template.shape
 #print h,w,d
 
-wbContent = cv2.imread('wb_text.png')
+wbContent = cv2.imread('wb_text_part2.png')
+curFrame = int(cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES));     
 
-while (1):
+while (curFrame < stopFrame):
     
     ret,frame = cap.read()
     curFrame = int(cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES));     
-    print 'Frame ', curFrame
+    print 'Frame %d / %d' %  (curFrame,numFrames)
     
     # see if we got a good frame
     if ret == True:
@@ -151,7 +167,7 @@ while (1):
             #gray = cv2.GaussianBlur(img2gray,(5,5),0)
             #ret, mask = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
             mask_inv = cv2.bitwise_not(mask)
-            cv2.imshow('mask',mask)
+            #cv2.imshow('mask',mask)
             
 
             contours, hierarchy = cv2.findContours(mask_inv,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
@@ -205,19 +221,21 @@ while (1):
             unWarped2 = cv2.bitwise_and(unWarped,unWarped,mask = unWarpedMask2)
             frameNew = cv2.add(frameMask,unWarped2)
             
-            cv2.imshow('unWarped',unWarped)
-            cv2.imshow('frameNew',frameNew)
+            #cv2.imshow('unWarped',unWarped)
+            #cv2.imshow('frameNew',frameNew)
 
+            out.write(frameNew)
             
             
         else:
-            print 'Didnt find template'    
+            print 'Didnt find template'
+            out.write(frame)
 
             
         
         
         
-        cv2.imshow('Original',frame)
+        #cv2.imshow('Original',frame)
         key = cv2.waitKey(100)
         if key  == 27: #escape
             print "exiting!"
@@ -226,8 +244,9 @@ while (1):
         print 'done with movie'
         break
 
-    cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, curFrame + skipFrames); 
+    #cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, curFrame + skipFrames); 
 
 
 print 'Done'
 cv2.destroyAllWindows()
+out.release()
