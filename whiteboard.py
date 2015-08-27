@@ -4,7 +4,7 @@ import sys
 
 # frame to start looking at 
 #startFrame = 0
-startFrame = 0
+startFrame = 200
 stopFrame  = 3000
 # number of frames to skip each time
 #skipFrames = 1
@@ -64,6 +64,10 @@ Th,Tw,d = template.shape
 wbContent = cv2.imread('wb_text_part2.png')
 curFrame = int(cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES));     
 
+
+#backsub = cv2.BackgroundSubtractorMOG2()
+
+
 while (curFrame < stopFrame):
     
     ret,frame = cap.read()
@@ -72,6 +76,9 @@ while (curFrame < stopFrame):
     
     # see if we got a good frame
     if ret == True:
+
+        
+
 
         # we have a template of the top right of the board, find the best match in the frame
         method = cv2.TM_CCOEFF_NORMED
@@ -142,6 +149,29 @@ while (curFrame < stopFrame):
             # create our virtual whiteboard
             virtualWhiteboard = cv2.warpPerspective(frame, M, (wbWidth, wbHeight))
 
+
+            # other background subtraction stuff
+            #fgmask = backsub.apply(virtualWhiteboard, None, 0.01)
+            #cv2.imshow('mask',fgmask)
+
+            # see if working on colorspace helps
+            # For HSV, Hue range is [0,179], Saturation range is [0,255] and Value range is [0,255]
+            #https://en.wikipedia.org/wiki/HSL_and_HSV
+            # hue is different colours, we dont care,
+            # we are looking for white which is in low values of saturation
+            # low values of V are black
+            # H: DC
+            # S: Low
+            # V: Low is black, highest is white, so middle is grays at 0 saturation
+            
+            virtualWhiteboardHSV = cv2.cvtColor(virtualWhiteboard, cv2.COLOR_BGR2HSV)
+            
+            lowerLimit = np.array([0,0,200])
+            upperLimit = np.array([179,60,255])
+
+            HSVmask = cv2.inRange(virtualWhiteboardHSV, lowerLimit, upperLimit)
+            cv2.imshow('hsv mask',HSVmask)
+            
             # draw a blue rectangle on virtual whiteboard to test
             # cv2.rectangle(virtualWhiteboard, (wbWidth/3,wbHeight/3), (wbWidth*2/3,wbHeight/2), 255, -1)
             
